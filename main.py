@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
 from torchvision.models import inception_v3
-import wandb
 
 import utils
+import wandb
 from models import deep_colorization
 
 

@@ -1,13 +1,15 @@
 import argparse
 import os
 import random
+import shutil
 
 import numpy as np
 import torch
-import wandb
 from skimage import io
 from skimage.color import rgb2lab
 from skimage.transform import resize
+
+import wandb
 
 
 def set_seed(seed):
@@ -25,7 +27,9 @@ def load_config():
     parser.add_argument('--batch_size', type=int, default=32, help='batch size')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
     parser.add_argument('--epochs', type=int, default=100, help='number of epochs')
-    parser.add_argument('--train_size', type=int, default=5_000, help='number of training images')
+    parser.add_argument('--train_size', type=int, default=30_500, help='number of training images')
+    parser.add_argument('--valid_size', type=int, default=3_000, help='number of validation images')
+    parser.add_argument('--test_size', type=int, default=3_000, help='number of test images')
     parser.add_argument('--patience', type=int, default=8, help='patience for early stopping')
     parser.add_argument('--early_stop', type=bool, default=True, help='early stopping')
     parser.add_argument('--scheduler', type=bool, default=True, help='scheduler')
@@ -42,8 +46,8 @@ def load_data(args):
 
     # Setting up Breakpoints
     num_train = args.train_size
-    num_val = 200
-    num_test = 200
+    num_val = args.valid_size
+    num_test = args.test_size
 
     base_dir = 'val_256/'
     files = os.listdir(base_dir)
@@ -56,11 +60,11 @@ def load_data(args):
 
         # Pick what folder to place image into
         if index < num_train:
-            os.rename(base_dir + image, "dataset/train/" + image)
+            shutil.copyfile(base_dir + image, "dataset/train/" + image)
         elif index < (num_train + num_val):
-            os.rename(base_dir + image, "dataset/validation/" + image)
+            shutil.copyfile(base_dir + image, "dataset/validation/" + image)
         elif index < (num_train + num_val + num_test):
-            os.rename(base_dir + image, "dataset/test/" + image)
+            shutil.copyfile(base_dir + image, "dataset/test/" + image)
         else:
             break
         index += 1
