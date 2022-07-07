@@ -30,6 +30,7 @@ def load_config():
     parser.add_argument('--early_stop', type=bool, default=True, help='early stopping')
     parser.add_argument('--scheduler', type=bool, default=True, help='scheduler')
     parser.add_argument('--wandb', type=bool, default=False, help='wandb')
+    parser.add_argument('--wandb_name', type=str, default="fusion model", help='wandb name')
     args = parser.parse_args()
     return args
 
@@ -133,10 +134,11 @@ def train(trainloader, model, inception_model, optimizer, criterion, scheduler, 
         print("Training Loss:", total_loss / len(trainloader))
 
 
-def validate(validloader, model, inception_model, criterion, device, args):
+def validate(validloader, model, inception_model, criterion, device, args, is_test=False):
     with torch.no_grad():
         model.eval()
         total_loss = 0
+        loss_type = "Test" if is_test else "Validation"
         for data in validloader:
             enc_in = data["L_enc"].to(device)
             inc_in = data["L_inc"].to(device)
@@ -151,6 +153,6 @@ def validate(validloader, model, inception_model, criterion, device, args):
             total_loss += loss.item()
 
         if args.wandb:
-            wandb.log({"Validation Loss": total_loss / len(validloader)})
+            wandb.log({f"{loss_type} Loss": total_loss / len(validloader)})
         else:
-            print("Validation Loss:", total_loss / len(validloader))
+            print(f"{loss_type} Loss:", total_loss / len(validloader))

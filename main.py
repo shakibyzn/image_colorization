@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torchvision.models import inception_v3
+import wandb
 
 import utils
 from models import deep_colorization
@@ -11,6 +12,11 @@ def main():
     # set seed
     utils.set_seed(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # wandb
+    if args.wandb:
+        run = wandb.init(project=args.wandb_name, entity='clean_label_poisoning_attack')
+        wandb.config.update(args)
 
     utils.load_data(args)
     # Get Dataset Objects
@@ -39,7 +45,10 @@ def main():
     for epoch in range(args.epochs):
         print("Epoch", epoch + 1)
         utils.train(train_loader, model, inception_model, optimizer, criterion, scheduler, device, args)
-        utils.validate(val_loader, model, inception_model, criterion, device, args)
+        utils.validate(val_loader, model, inception_model, criterion, device, args, is_test=False)
+
+    # evaluation
+    utils.validate(test_loader, model, inception_model, criterion, device, args, is_test=True)
 
 
 if __name__ == '__main__':
