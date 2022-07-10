@@ -37,7 +37,11 @@ def load_config():
     parser.add_argument('--early_stop', type=bool, default=True, help='early stopping')
     parser.add_argument('--scheduler', type=bool, default=True, help='scheduler')
     parser.add_argument('--wandb', type=bool, default=False, help='wandb')
-    parser.add_argument('--wandb_name', type=str, default="fusion model", help='wandb name')
+    parser.add_argument('--wandb_name', type=str, default="koalarization", help='wandb name')
+    parser.add_argument("--wandb_key",
+                        type=str,
+                        default="dfe5edf7e2dc6ae6b448271cfa1093fad2c9d433",
+                        help="enter your wandb key if you didn't set on your os")  # Maryam's key
     parser.add_argument('--portion', type=float, default=0.0, help='portion of data to be used')
     args = parser.parse_args()
     return args
@@ -186,7 +190,7 @@ def validate(validloader, model, inception_model, criterion, device, args, is_te
             total_loss += loss.item()
 
             if is_test:
-                img = np.concatenate([L.cpu(), net_AB.cpu()], axis=0)
+                img = np.concatenate([L.cpu(), net_AB.cpu()], axis=1)
                 # print(img.shape)
                 img[:, 0, :, :] += 1.0
                 img[:, 0, :, :] *= 50.07

@@ -18,8 +18,12 @@ def main():
 
     # wandb
     if args.wandb:
-        run = wandb.init(project=args.wandb_name, entity='clean_label_poisoning_attack')
-        wandb.config.update(args)
+        # os.environ['TORCH_HOME'] = args.checkpoints_path
+        if args.wandb:
+            os.environ['WANDB_API_KEY'] = args.wandb_key
+            os.environ['WANDB_CONFIG_DIR'] = "/home/hlcv_team019/image_colorization/"  # for docker
+            run = wandb.init(project=args.wandb_name, entity='image_colorization')
+            wandb.config.update(args)
 
     train_images, val_images, test_images = utils.load_data(args)
 
