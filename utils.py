@@ -186,18 +186,21 @@ def validate(validloader, model, inception_model, criterion, device, args, is_te
             total_loss += loss.item()
 
             if is_test:
-                img = np.concatenate([L[0].cpu(), net_AB[0].cpu()], axis=0)
+                img = np.concatenate([L.cpu(), net_AB.cpu()], axis=0)
                 # print(img.shape)
-                img[0] += 1.0
-                img[0] *= 50.07
-                img[1:] *= 128.0
-                result_img = lab2rgb(img.transpose(1, 2, 0))
-                plt.imshow(result_img)
+                img[:, 0, :, :] += 1.0
+                img[:, 0, :, :] *= 50.07
+                img[:, 1:, :, :] *= 128.0
+                result_img = lab2rgb(img.transpose(0, 2, 3, 1))  # lab2rgb(img.transpose(1, 2, 0))
+                real_img = data["RGB"].detach().numpy()
+                # save the first image of the batch
+                plt.imshow(result_img[0])
                 plt.savefig(f'results/seed_{args.seed}/portion_{args.portion}/gen_{i}.png')
-                plt.imshow(data["RGB"])
+                plt.imshow(real_img[0])
                 plt.savefig(f'results/seed_{args.seed}/portion_{args.portion}/real_{i}.png')
                 i += 1
-                total_ssim += ssim(result_img, data["RGB"], multichannel=True)
+                # compute ssim for the whole batch
+                total_ssim += ssim(result_img, real_img, multichannel=True)
 
         if args.wandb:
             wandb.log({f"{loss_type} Loss": total_loss / len(validloader)})
