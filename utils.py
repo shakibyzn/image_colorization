@@ -185,7 +185,7 @@ def validate(validloader, model, inception_model, criterion, device, args, is_te
 
             if is_test:
                 img = np.concatenate([L[0].cpu(), net_AB[0].cpu()], axis=0)
-                print(img.shape)
+                # print(img.shape)
                 img[0] += 1.0
                 img[0] *= 50.07
                 img[1:] *= 128.0
