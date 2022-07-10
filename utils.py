@@ -10,6 +10,7 @@ from skimage.color import rgb2lab
 from skimage.transform import resize
 from skimage.transform import resize
 from skimage.color import rgb2lab, lab2rgb
+from skimage.metrics import structural_similarity as ssim
 import matplotlib.pyplot as plt
 import wandb
 
@@ -168,6 +169,7 @@ def validate(validloader, model, inception_model, criterion, device, args, is_te
     with torch.no_grad():
         model.eval()
         total_loss = 0
+        total_ssim = 0
         loss_type = "Test" if is_test else "Validation"
         i = 0
         for data in validloader:
@@ -193,8 +195,13 @@ def validate(validloader, model, inception_model, criterion, device, args, is_te
                 plt.imshow(result_img)
                 plt.savefig(f'results/{i}.png')
                 i += 1
+                total_ssim += ssim(result_img, data["RGB"], multichannel=True)
 
         if args.wandb:
             wandb.log({f"{loss_type} Loss": total_loss / len(validloader)})
+            if is_test:
+                wandb.log({f"{loss_type} ssim": total_ssim / len(validloader)})
         else:
             print(f"{loss_type} Loss:", total_loss / len(validloader))
+            if is_test:
+                print({f"{loss_type} ssim": total_ssim / len(validloader)})
