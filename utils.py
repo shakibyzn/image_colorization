@@ -8,7 +8,9 @@ import torch
 from skimage import io
 from skimage.color import rgb2lab
 from skimage.transform import resize
-
+from skimage.transform import resize
+from skimage.color import rgb2lab, lab2rgb
+import matplotlib.pyplot as plt
 import wandb
 
 
@@ -35,39 +37,63 @@ def load_config():
     parser.add_argument('--scheduler', type=bool, default=True, help='scheduler')
     parser.add_argument('--wandb', type=bool, default=False, help='wandb')
     parser.add_argument('--wandb_name', type=str, default="fusion model", help='wandb name')
+    parser.add_argument('--portion', type=float, default=0.0, help='portion of data to be used')
     args = parser.parse_args()
     return args
 
 
 def load_data(args):
-    for name in ['train', 'validation', 'test']:
-        path = "dataset/" + name + "/"
-        os.makedirs(path, exist_ok=True)
+    if not os.path.exists('dataset'):
+        for name in ['train', 'validation', 'test']:
+            path = "dataset/" + name + "/"
+            os.makedirs(path, exist_ok=True)
 
-    # Setting up Breakpoints
-    num_train = args.train_size
-    num_val = args.valid_size
-    num_test = args.test_size
+        # Setting up Breakpoints
+        num_train = args.train_size
+        num_val = args.valid_size
+        num_test = args.test_size
 
-    base_dir = 'val_256/'
-    files = os.listdir(base_dir)
-    index = 0
-    for image in files:
+        base_dir = 'val_256/'
+        files = os.listdir(base_dir)
+        index = 0
+        for image in files:
 
-        test = io.imread(base_dir + image)
-        if test.ndim != 3:
-            continue
+            test = io.imread(base_dir + image)
+            if test.ndim != 3:
+                continue
 
-        # Pick what folder to place image into
-        if index < num_train:
-            shutil.copyfile(base_dir + image, "dataset/train/" + image)
-        elif index < (num_train + num_val):
-            shutil.copyfile(base_dir + image, "dataset/validation/" + image)
-        elif index < (num_train + num_val + num_test):
-            shutil.copyfile(base_dir + image, "dataset/test/" + image)
-        else:
-            break
-        index += 1
+            # Pick what folder to place image into
+            if index < num_train:
+                shutil.copyfile(base_dir + image, "dataset/train/" + image)
+            elif index < (num_train + num_val):
+                shutil.copyfile(base_dir + image, "dataset/validation/" + image)
+            elif index < (num_train + num_val + num_test):
+                shutil.copyfile(base_dir + image, "dataset/test/" + image)
+            else:
+                break
+            index += 1
+
+        # Get Dataset Objects
+        train_images = ModelDataset(base_dir="./dataset/train")
+        val_images = ModelDataset(base_dir="./dataset/validation")
+        test_images = ModelDataset(base_dir="./dataset/test")
+
+    else:
+        # Get Dataset Objects
+        train_images = ModelDataset(base_dir="./dataset/train")
+        val_images = ModelDataset(base_dir="./dataset/validation")
+        test_images = ModelDataset(base_dir="./dataset/test")
+        if args.portion != 0:
+            train_images, _ = torch.utils.data.random_split(train_images, [int(args.portion * len(train_images)),
+                                                     len(train_images) - int(args.portion * len(train_images))])
+
+            val_images, _ = torch.utils.data.random_split(val_images, [int(args.portion * len(val_images)),
+                                                    len(val_images) - int(args.portion * len(val_images))])
+
+            test_images, _ = torch.utils.data.random_split(test_images, [int(args.portion * len(test_images)),
+                                                     len(test_images) - int(args.portion * len(test_images))])
+
+    return train_images, val_images, test_images
 
 
 class ModelDataset(torch.utils.data.Dataset):
@@ -143,6 +169,7 @@ def validate(validloader, model, inception_model, criterion, device, args, is_te
         model.eval()
         total_loss = 0
         loss_type = "Test" if is_test else "Validation"
+        i = 0
         for data in validloader:
             enc_in = data["L_enc"].to(device)
             inc_in = data["L_inc"].to(device)
@@ -155,6 +182,17 @@ def validate(validloader, model, inception_model, criterion, device, args, is_te
             net_AB = model(enc_in, out_incept)
             loss = criterion(net_AB, AB)
             total_loss += loss.item()
+
+            if is_test:
+                img = np.concatenate([L[0].cpu(), net_AB[0].cpu()], axis=0)
+                print(img.shape)
+                img[0] += 1.0
+                img[0] *= 50.07
+                img[1:] *= 128.0
+                result_img = lab2rgb(img.transpose(1, 2, 0))
+                plt.imshow(result_img)
+                plt.savefig(f'results/{i}.png')
+                i += 1
 
         if args.wandb:
             wandb.log({f"{loss_type} Loss": total_loss / len(validloader)})

@@ -21,18 +21,16 @@ def main():
         run = wandb.init(project=args.wandb_name, entity='clean_label_poisoning_attack')
         wandb.config.update(args)
 
-    if not os.path.exists('dataset'):
-        utils.load_data(args)
-
-    # Get Dataset Objects
-    train_images = utils.ModelDataset(base_dir="./dataset/train")
-    val_images = utils.ModelDataset(base_dir="./dataset/validation")
-    test_images = utils.ModelDataset(base_dir="./dataset/test")
+    train_images, val_images, test_images = utils.load_data(args)
 
     # Pass Into Loaders
-    train_loader = torch.utils.data.DataLoader(train_images, batch_size=args.batch_size, num_workers=2)
+    train_loader = torch.utils.data.DataLoader(train_images, batch_size=args.batch_size, num_workers=2, shuffle=True)
     val_loader = torch.utils.data.DataLoader(val_images, batch_size=args.batch_size, num_workers=2)
     test_loader = torch.utils.data.DataLoader(test_images, batch_size=args.batch_size, num_workers=2)
+
+    # create results folder
+    if not os.path.exists('results'):
+        os.mkdir('results')
 
     # load inception_v3 and primary models
     inception_model = inception_v3(pretrained=True).to(device)
