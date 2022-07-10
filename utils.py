@@ -193,7 +193,9 @@ def validate(validloader, model, inception_model, criterion, device, args, is_te
                 img[1:] *= 128.0
                 result_img = lab2rgb(img.transpose(1, 2, 0))
                 plt.imshow(result_img)
-                plt.savefig(f'results/{i}.png')
+                plt.savefig(f'results/seed_{args.seed}/portion_{args.portion}/gen_{i}.png')
+                plt.imshow(data["RGB"])
+                plt.savefig(f'results/seed_{args.seed}/portion_{args.portion}/real_{i}.png')
                 i += 1
                 total_ssim += ssim(result_img, data["RGB"], multichannel=True)
 

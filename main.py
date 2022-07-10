@@ -31,6 +31,8 @@ def main():
     # create results folder
     if not os.path.exists('results'):
         os.mkdir('results')
+    if not os.path.exists(f"results/seed_{args.seed}/portion_{args.portion}"):
+        os.mkdir(f'results/seed_{args.seed}/portion_{args.portion}')
 
     # load inception_v3 and primary models
     inception_model = inception_v3(pretrained=True).to(device)
