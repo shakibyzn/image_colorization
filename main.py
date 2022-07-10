@@ -5,10 +5,13 @@ from torchvision.models import inception_v3
 import utils
 import wandb
 from models import deep_colorization
+import os
+os.environ['TORCH_HOME'] = 'models_cpt'
 
 
 def main():
     args = utils.load_config()
+    print(args)
     # set seed
     utils.set_seed(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -18,7 +21,9 @@ def main():
         run = wandb.init(project=args.wandb_name, entity='clean_label_poisoning_attack')
         wandb.config.update(args)
 
-    utils.load_data(args)
+    if not os.path.exists('dataset'):
+        utils.load_data(args)
+
     # Get Dataset Objects
     train_images = utils.ModelDataset(base_dir="./dataset/train")
     val_images = utils.ModelDataset(base_dir="./dataset/validation")
