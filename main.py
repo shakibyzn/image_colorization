@@ -4,7 +4,7 @@ from torchvision.models import inception_v3
 
 import utils
 import wandb
-from models import deep_colorization, AttU_Net
+from models import deep_colorization, Attention_UNet
 import os
 os.environ['TORCH_HOME'] = 'models_cpt'
 
@@ -43,7 +43,7 @@ def main():
         inception_model = inception_v3(pretrained=True).to(device)
         model = deep_colorization.ColorNet().to(device)
     elif args.model_name == 'attention_unet':
-        model = AttU_Net(img_ch=3, output_ch=3).to(device)
+        model = Attention_UNet.AttU_Net(img_ch=3, output_ch=3).to(device)
     else:
         raise NotImplementedError
 
