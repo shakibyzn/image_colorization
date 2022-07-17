@@ -102,7 +102,7 @@ def load_data(args):
     return train_images, val_images, test_images
 
 
-class ModelDataset(torch.utils.data.Dataset):
+class ModelDataset(torch.utils.data.Dataset):  # https://patrickyoussef.com/projects/image-colorization/
     def __init__(self, base_dir):
         self.base_dir = base_dir
         self.all_imgs = os.listdir(base_dir)
