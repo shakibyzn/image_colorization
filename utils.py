@@ -36,6 +36,7 @@ def load_config():
     parser.add_argument('--patience', type=int, default=8, help='patience for early stopping')
     parser.add_argument('--early_stop', type=bool, default=True, help='early stopping')
     parser.add_argument('--scheduler', type=bool, default=True, help='scheduler')
+    parser.add_argument('--model_name', type=str, default="koalarization", help='model name')
     parser.add_argument('--wandb', type=bool, default=False, help='wandb')
     parser.add_argument('--wandb_name', type=str, default="koalarization", help='wandb name')
     parser.add_argument("--wandb_key",
@@ -140,19 +141,25 @@ class ModelDataset(torch.utils.data.Dataset):
         return sample
 
 
-def train(trainloader, model, inception_model, optimizer, criterion, scheduler, device, args):
+def train(trainloader, model, optimizer, criterion, scheduler, device, args, **kwargs):
     model.train()
     total_loss = 0
     for data in trainloader:
         enc_in = data["L_enc"].to(device)
-        inc_in = data["L_inc"].to(device)
         AB = data["AB"].to(device)
         L = data["L"].to(device)
+        if args.model_name == 'koalarization':
+            inc_in = data["L_inc"].to(device)
+            # Get Inception Output
+            inception_model = kwargs['inception_model']
+            out_incept, _ = inception_model(inc_in)
+            # Get Network AB
+            net_AB = model(enc_in, out_incept)
+        elif args.model_name == 'attention_unet':
+            net_AB = model(enc_in)
+        else:
+            raise NotImplementedError
 
-        # Get Inception Output
-        out_incept, _ = inception_model(inc_in)
-        # Get Network AB
-        net_AB = model(enc_in, out_incept)
         loss = criterion(net_AB, AB)
         total_loss += loss.item()
 
@@ -169,7 +176,7 @@ def train(trainloader, model, inception_model, optimizer, criterion, scheduler, 
         print("Training Loss:", total_loss / len(trainloader))
 
 
-def validate(validloader, model, inception_model, criterion, device, args, is_test=False):
+def validate(validloader, model, criterion, device, args, is_test=False, **kwargs):
     with torch.no_grad():
         model.eval()
         total_loss = 0
@@ -178,14 +185,21 @@ def validate(validloader, model, inception_model, criterion, device, args, is_te
         i = 0
         for data in validloader:
             enc_in = data["L_enc"].to(device)
-            inc_in = data["L_inc"].to(device)
             AB = data["AB"].to(device)
             L = data["L"].to(device)
 
-            # Get Inception Output
-            out_incept, _ = inception_model(inc_in)
-            # Get Network AB
-            net_AB = model(enc_in, out_incept)
+            if args.model_name == 'koalarization':
+                inc_in = data["L_inc"].to(device)
+                # Get Inception Output
+                inception_model = kwargs['inception_model']
+                out_incept, _ = inception_model(inc_in)
+                # Get Network AB
+                net_AB = model(enc_in, out_incept)
+            elif args.model_name == 'attention_unet':
+                net_AB = model(enc_in)
+            else:
+                raise NotImplementedError
+
             loss = criterion(net_AB, AB)
             total_loss += loss.item()
 

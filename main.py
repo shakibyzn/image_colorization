@@ -4,7 +4,7 @@ from torchvision.models import inception_v3
 
 import utils
 import wandb
-from models import deep_colorization
+from models import deep_colorization, AttU_Net
 import os
 os.environ['TORCH_HOME'] = 'models_cpt'
 
@@ -35,12 +35,17 @@ def main():
     # create results folder
     if not os.path.exists('results'):
         os.mkdir('results')
-    if not os.path.exists(f"results/seed_{args.seed}/portion_{args.portion}"):
-        os.makedirs(f'results/seed_{args.seed}/portion_{args.portion}')
+    if not os.path.exists(f"results/{args.model_name}/seed_{args.seed}/portion_{args.portion}"):
+        os.makedirs(f'results/{args.model_name}/seed_{args.seed}/portion_{args.portion}')
 
-    # load inception_v3 and primary models
-    inception_model = inception_v3(pretrained=True).to(device)
-    model = deep_colorization.ColorNet().to(device)
+    if args.model_name == 'koalarization':
+        # load inception_v3 and primary models
+        inception_model = inception_v3(pretrained=True).to(device)
+        model = deep_colorization.ColorNet().to(device)
+    elif args.model_name == 'attention_unet':
+        model = AttU_Net(img_ch=3, output_ch=3).to(device)
+    else:
+        raise NotImplementedError
 
     # optimizer, criterion
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
@@ -53,11 +58,24 @@ def main():
     # training
     for epoch in range(args.epochs):
         print("Epoch", epoch + 1)
-        utils.train(train_loader, model, inception_model, optimizer, criterion, scheduler, device, args)
-        utils.validate(val_loader, model, inception_model, criterion, device, args, is_test=False)
+        if args.model_name == 'koalarization':
+            kwargs = {'inception_model': inception_model}
+            utils.train(train_loader, model, optimizer, criterion, scheduler, device, args, **kwargs)
+            utils.validate(val_loader, model, criterion, device, args, is_test=False, **kwargs)
+        elif args.model_name == 'attention_unet':
+            utils.train(train_loader, model, optimizer, criterion, scheduler, device, args)
+            utils.validate(val_loader, model, criterion, device, args, is_test=False)
+        else:
+            raise NotImplementedError
 
     # evaluation
-    utils.validate(test_loader, model, inception_model, criterion, device, args, is_test=True)
+    if args.model_name == 'koalarization':
+        kwargs = {'inception_model': inception_model}
+        utils.validate(val_loader, model, criterion, device, args, is_test=True, **kwargs)
+    elif args.model_name == 'attention_unet':
+        utils.validate(val_loader, model, criterion, device, args, is_test=True)
+    else:
+        raise NotImplementedError
 
 
 if __name__ == '__main__':
