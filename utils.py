@@ -213,9 +213,9 @@ def validate(validloader, model, criterion, device, args, is_test=False, **kwarg
                 real_img = data["RGB"].detach().numpy()
                 # save the first image of the batch
                 plt.imshow(result_img[0])
-                plt.savefig(f'results/seed_{args.seed}/portion_{args.portion}/gen_{i}.png')
+                plt.savefig(f'results/{args.model_name}/seed_{args.seed}/portion_{args.portion}/gen_{i}.png')
                 plt.imshow(real_img[0])
-                plt.savefig(f'results/seed_{args.seed}/portion_{args.portion}/real_{i}.png')
+                plt.savefig(f'results/{args.model_name}/seed_{args.seed}/portion_{args.portion}/real_{i}.png')
                 i += 1
                 # compute ssim for the whole batch
                 total_ssim += ssim(result_img, real_img, multichannel=True)
