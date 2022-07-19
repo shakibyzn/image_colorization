@@ -96,8 +96,8 @@ def load_data(args):
             val_images, _ = torch.utils.data.random_split(val_images, [int(args.portion * len(val_images)),
                                                     len(val_images) - int(args.portion * len(val_images))])
 
-            test_images, _ = torch.utils.data.random_split(test_images, [int(args.portion * len(test_images)),
-                                                     len(test_images) - int(args.portion * len(test_images))])
+            # test_images, _ = torch.utils.data.random_split(test_images, [int(args.portion * len(test_images)),
+            #                                          len(test_images) - int(args.portion * len(test_images))])
 
     return train_images, val_images, test_images
 
