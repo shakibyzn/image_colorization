@@ -22,7 +22,7 @@ def main():
         if args.wandb:
             os.environ['WANDB_API_KEY'] = args.wandb_key
             os.environ['WANDB_CONFIG_DIR'] = "/home/hlcv_team019/image_colorization/"  # for docker
-            run = wandb.init(project=args.wandb_name, entity='image_colorization')
+            run = wandb.init(project=args.wandb_name, entity='clean_label_poisoning_attack')
             wandb.config.update(args)
 
     train_images, val_images, test_images = utils.load_data(args)
@@ -43,7 +43,7 @@ def main():
         inception_model = inception_v3(pretrained=True).to(device)
         model = deep_colorization.ColorNet().to(device)
     elif args.model_name == 'attention_unet':
-        model = Attention_UNet.AttU_Net(img_ch=3, output_ch=3).to(device)
+        model = Attention_UNet.AttU_Net(img_ch=3, output_ch=2).to(device)
     else:
         raise NotImplementedError
 
