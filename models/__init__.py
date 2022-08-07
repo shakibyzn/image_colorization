@@ -1,1 +1,1 @@
-from . import deep_colorization, Attention_UNet
+from . import deep_colorization, Attention_UNet, attention_unet_fusion

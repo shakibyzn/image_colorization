@@ -4,7 +4,7 @@ from torchvision.models import inception_v3
 
 import utils
 import wandb
-from models import deep_colorization, Attention_UNet
+from models import deep_colorization, Attention_UNet, attention_unet_fusion
 import os
 os.environ['TORCH_HOME'] = 'models_cpt'
 
@@ -44,6 +44,9 @@ def main():
         model = deep_colorization.ColorNet().to(device)
     elif args.model_name == 'attention_unet':
         model = Attention_UNet.AttU_Net(img_ch=3, output_ch=2).to(device)
+    elif args.model_name == 'attention_unet_fusion':
+        inception_model = inception_v3(pretrained=True).to(device)
+        model = attention_unet_fusion.AttU_Net_Fusion(img_ch=3, output_ch=2).to(device)
     else:
         raise NotImplementedError
 
@@ -58,7 +61,7 @@ def main():
     # training
     for epoch in range(args.epochs):
         print("Epoch", epoch + 1)
-        if args.model_name == 'koalarization':
+        if args.model_name == 'koalarization' or args.model_name == 'attention_unet_fusion':
             kwargs = {'inception_model': inception_model}
             utils.train(train_loader, model, optimizer, criterion, scheduler, device, args, **kwargs)
             utils.validate(val_loader, model, criterion, device, args, is_test=False, **kwargs)
@@ -69,7 +72,7 @@ def main():
             raise NotImplementedError
 
     # evaluation
-    if args.model_name == 'koalarization':
+    if args.model_name == 'koalarization' or args.model_name == 'attention_unet_fusion':
         kwargs = {'inception_model': inception_model}
         utils.validate(val_loader, model, criterion, device, args, is_test=True, **kwargs)
     elif args.model_name == 'attention_unet':

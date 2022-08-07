@@ -33,10 +33,8 @@ def load_config():
     parser.add_argument('--train_size', type=int, default=30_500, help='number of training images')
     parser.add_argument('--valid_size', type=int, default=3_000, help='number of validation images')
     parser.add_argument('--test_size', type=int, default=3_000, help='number of test images')
-    parser.add_argument('--patience', type=int, default=8, help='patience for early stopping')
-    parser.add_argument('--early_stop', type=bool, default=True, help='early stopping')
     parser.add_argument('--scheduler', type=bool, default=True, help='scheduler')
-    parser.add_argument('--model_name', type=str, default="koalarization", help='model name')
+    parser.add_argument('--model_name', type=str, default=" ", help='model name')
     parser.add_argument('--wandb', type=bool, default=False, help='wandb')
     parser.add_argument('--wandb_name', type=str, default="koalarization", help='wandb name')
     parser.add_argument("--wandb_key",
@@ -148,7 +146,7 @@ def train(trainloader, model, optimizer, criterion, scheduler, device, args, **k
         enc_in = data["L_enc"].to(device)
         AB = data["AB"].to(device)
         L = data["L"].to(device)
-        if args.model_name == 'koalarization':
+        if args.model_name == 'koalarization' or args.model_name == 'attention_unet_fusion':
             inc_in = data["L_inc"].to(device)
             # Get Inception Output
             inception_model = kwargs['inception_model']
@@ -188,7 +186,7 @@ def validate(validloader, model, criterion, device, args, is_test=False, **kwarg
             AB = data["AB"].to(device)
             L = data["L"].to(device)
 
-            if args.model_name == 'koalarization':
+            if args.model_name == 'koalarization' or args.model_name == 'attention_unet_fusion':
                 inc_in = data["L_inc"].to(device)
                 # Get Inception Output
                 inception_model = kwargs['inception_model']
@@ -218,7 +216,8 @@ def validate(validloader, model, criterion, device, args, is_test=False, **kwarg
                 plt.savefig(f'results/{args.model_name}/seed_{args.seed}/portion_{args.portion}/real_{i}.png')
                 i += 1
                 # compute ssim for the whole batch
-                total_ssim += ssim(result_img, real_img, multichannel=True)
+                print(result_img.shape)
+                total_ssim += ssim(result_img, real_img, channel_axis=3)
 
         if args.wandb:
             wandb.log({f"{loss_type} Loss": total_loss / len(validloader)})
