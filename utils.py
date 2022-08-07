@@ -216,7 +216,6 @@ def validate(validloader, model, criterion, device, args, is_test=False, **kwarg
                 plt.savefig(f'results/{args.model_name}/seed_{args.seed}/portion_{args.portion}/real_{i}.png')
                 i += 1
                 # compute ssim for the whole batch
-                print(result_img.shape)
                 total_ssim += ssim(result_img, real_img, channel_axis=3)
 
         if args.wandb:
