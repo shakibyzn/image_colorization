@@ -38,10 +38,9 @@ LEARNING_RATE=1e-3
 1- Deep Koalarization model
 python main.py --epochs=100 --lr=0.0005 --seed=5 --batch_size=32 --model_name=koalarization
 2- Attention U-Net
-main.py --epochs=100 --lr=0.0005 --seed=5 --batch_size=32 --model_name=attention_unet
+python main.py --epochs=100 --lr=0.0005 --seed=5 --batch_size=32 --model_name=attention_unet
 3- Fusion of Attention U-Net model with Inception-V3
-Attention U-Net
-main.py --epochs=100 --lr=0.0005 --seed=5 --batch_size=32 --model_name=attention_unet_fusion
+python main.py --epochs=100 --lr=0.0005 --seed=5 --batch_size=32 --model_name=attention_unet_fusion
 ```
 
 ## License
