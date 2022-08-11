@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import init
-from .Attention_UNet import conv_block, up_conv, Attention_block
+from .attention_unet import conv_block, up_conv, Attention_block
 from .deep_colorization import ImgFusion
 
 class AttU_Net_Fusion(nn.Module):
