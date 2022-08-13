@@ -46,7 +46,7 @@ python main.py --epochs=100 --lr=0.0005 --seed=5 --batch_size=32 --model_name=at
 ### Results
 Some of the colored samples from the test set are shown below. The images in the first column show original images, the images in the second column denote colored images by Attention U-Net model, and the images in the third column denote colored images by Deep koalarization model.
 
-![samples](https://github.com/shakibyzn/image_colorization/blob/main/images/samples_colored.png)
+![samples](https://github.com/shakibyzn/image_colorization/blob/main/images/samples_colored.png =800*400)
 ## License
 
 MIT License
